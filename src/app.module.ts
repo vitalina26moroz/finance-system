@@ -4,6 +4,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { AuthModule } from './auth/auth.module';
+import { BudgetModule } from './budget/budget.module';
+import { ExpenseModule } from './expense/expense.module';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -18,12 +22,17 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         username: configService.getOrThrow('MYSQL_USER'),
         password: configService.getOrThrow('MYSQL_PASSWORD'),
         database: configService.getOrThrow('MYSQL_NAME'),
-        entities : [__dirname + '/**/*.entity{.js, .ts}']
+        entities: [__dirname + '/**/*.entity{.js, .ts}'],
+        synchronize: true,
       }),
     }),
     UserModule,
+    AuthModule,
+    BudgetModule,
+    ExpenseModule,
+    ReportModule,
   ],
-  controllers: [AppController,],
+  controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}
