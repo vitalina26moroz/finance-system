@@ -5,10 +5,12 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
+import * as bcrypt from 'bcrypt';
+
 @Entity({ name: 'user' })
 export class User {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
@@ -17,11 +19,22 @@ export class User {
   email: string;
 
   @Column()
-  password: string;
+  password_hashed: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
-  @Column()
+  @Column({ default: 'USD' })
   currency: string;
+
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0.0 })
+  current_budget: number;
+
+  @Column()
+  salt: string;
+
+  async validatePassword(password: string): Promise<boolean> {
+    const hash = await bcrypt.hash(password, this.salt);
+    return hash === this.password_hashed;
+  }
 }

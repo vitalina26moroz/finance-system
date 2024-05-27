@@ -5,9 +5,8 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
-import { BudgetModule } from './budget/budget.module';
-import { ExpenseModule } from './expense/expense.module';
 import { ReportModule } from './report/report.module';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -28,9 +27,8 @@ import { ReportModule } from './report/report.module';
     }),
     UserModule,
     AuthModule,
-    BudgetModule,
-    ExpenseModule,
     ReportModule,
+    TransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

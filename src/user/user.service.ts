@@ -1,26 +1,57 @@
 import { Injectable } from '@nestjs/common';
-import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { User } from './entities/user.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SignupDto } from './dto/signupDto.dto';
+import * as bcrypt from 'bcrypt';
+import { LoginDto } from './dto/loginDto.dto';
+import { LoginResponseDto } from './dto/loginResponse.dto';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class UserService {
-  create(createUserDto: CreateUserDto) {
-    return 'This action adds a new user';
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {}
+
+  findById(id: string): Promise<User> {
+    return this.userRepository.findOne({ where: { id } });
   }
 
-  findAll() {
-    return `This action returns all user`;
+  private async hashPassword(password: string, salt: string): Promise<string> {
+    return bcrypt.hash(password, salt);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  async create(signupDto: SignupDto): Promise<User> {
+    const { email, password, name } = signupDto;
+    const user = new User();
+
+    user.salt = await bcrypt.genSalt();
+    user.password_hashed = await this.hashPassword(password, user.salt);
+    user.email = email;
+    user.name = name;
+    user.createdAt = new Date();
+
+    try {
+      await this.userRepository.save(user);
+      return user;
+    } catch (error) {
+      throw error;
+    }
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
-  }
+  async signIn(loginDto: LoginDto): Promise<LoginResponseDto> {
+    const { email, password } = loginDto;
+    const user = await this.userRepository.findOne({ where: { email } });
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+    if (user && user.validatePassword(password)) {
+      const userResponse = new LoginResponseDto();
+
+      userResponse.username = user.name;
+      userResponse.email = user.email;
+      return userResponse;
+    } else {
+      return null;
+    }
   }
 }
