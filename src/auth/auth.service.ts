@@ -1,9 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { LoginDto } from 'src/user/dto/loginDto.dto';
+import { UserType } from 'src/types/userType';
 import { LoginResponseDto } from 'src/user/dto/loginResponse.dto';
-import { SignupDto } from 'src/user/dto/signupDto.dto';
-import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -12,26 +10,23 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly jwtService: JwtService,
   ) {}
-  async validateUserById(userId: string) {
-    return await this.userService.findById(userId);
-  }
+  async validateUser(email: string, password: string) {
+    const user = await this.userService.findOneByEmail(email);
+    const passwordIsMatch = user.validatePassword(password);
 
-  async signUp(signupDto: SignupDto): Promise<User> {
-    return this.userService.create(signupDto);
-  }
-
-  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
-    const userResult = await this.userService.signIn(loginDto);
-
-    if (!userResult) {
-      throw new UnauthorizedException('Invalid Credentials!');
+    if (user && passwordIsMatch) {
+      return user;
     }
 
-    const payload = { userResult };
-    const accessToken = await this.jwtService.sign(payload);
+    throw new UnauthorizedException('User or password are incorrect!');
+  }
 
-    const signInResponse: LoginResponseDto = { ...userResult, accessToken };
-
-    return signInResponse;
+  async login(user: UserType): Promise<LoginResponseDto> {
+    const { id, email } = user;
+    return {
+      id,
+      email,
+      token: this.jwtService.sign({ id: user.id, email: user.email }),
+    };
   }
 }

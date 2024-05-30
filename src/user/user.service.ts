@@ -1,10 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SignupDto } from './dto/signupDto.dto';
 import * as bcrypt from 'bcrypt';
-import { LoginDto } from './dto/loginDto.dto';
-import { LoginResponseDto } from './dto/loginResponse.dto';
 import { Repository } from 'typeorm';
 
 @Injectable()
@@ -24,6 +22,16 @@ export class UserService {
 
   async create(signupDto: SignupDto): Promise<User> {
     const { email, password, name } = signupDto;
+    const existUser = await this.userRepository.findOne({
+      where: {
+        email: email,
+      },
+    });
+    if (existUser)
+      throw new BadRequestException(
+        'User with this email already exist! Cannot create User',
+      );
+
     const user = new User();
 
     user.salt = await bcrypt.genSalt();
@@ -40,18 +48,11 @@ export class UserService {
     }
   }
 
-  async signIn(loginDto: LoginDto): Promise<LoginResponseDto> {
-    const { email, password } = loginDto;
-    const user = await this.userRepository.findOne({ where: { email } });
-
-    if (user && user.validatePassword(password)) {
-      const userResponse = new LoginResponseDto();
-
-      userResponse.username = user.name;
-      userResponse.email = user.email;
-      return userResponse;
-    } else {
-      return null;
-    }
+  async findOneByEmail(email: string) {
+    return await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
   }
 }
