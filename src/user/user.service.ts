@@ -4,12 +4,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { SignupDto } from './dto/signupDto.dto';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
+import { RegisterResponseDto } from './dto/registerResponseDto.dto';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
   ) {}
 
   findById(id: string): Promise<User> {
@@ -20,7 +23,7 @@ export class UserService {
     return bcrypt.hash(password, salt);
   }
 
-  async create(signupDto: SignupDto): Promise<User> {
+  async create(signupDto: SignupDto): Promise<RegisterResponseDto> {
     const { email, password, name } = signupDto;
     const existUser = await this.userRepository.findOne({
       where: {
@@ -41,14 +44,15 @@ export class UserService {
     user.createdAt = new Date();
 
     try {
+      const token = this.jwtService.sign({ email: user.email });
       await this.userRepository.save(user);
-      return user;
+      return { ...user, token };
     } catch (error) {
       throw error;
     }
   }
 
-  async findOneByEmail(email: string) {
+  async findOneByEmail(email: string): Promise<User> {
     return await this.userRepository.findOne({
       where: {
         email,
