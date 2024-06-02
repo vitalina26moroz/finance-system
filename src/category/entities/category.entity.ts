@@ -15,7 +15,7 @@ export class Category {
   id: number;
 
   @Column()
-  name: string;
+  category_name: string;
 
   @Column()
   desciption: string;

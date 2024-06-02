@@ -23,7 +23,7 @@ import { CategoryModule } from './category/category.module';
         password: configService.getOrThrow('PASSWORD'),
         database: configService.getOrThrow('NAME'),
         entities: [__dirname + '/**/*.entity{.js, .ts}'],
-        synchronize: true,
+        synchronize: false,
       }),
     }),
     UserModule,
