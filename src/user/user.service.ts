@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SignupDto } from './dto/signupDto.dto';
@@ -6,6 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { RegisterResponseDto } from './dto/registerResponseDto.dto';
+import { UpdateUserDto } from './dto/updateUserDto.dto';
 
 @Injectable()
 export class UserService {
@@ -58,5 +63,32 @@ export class UserService {
         email,
       },
     });
+  }
+
+  async update(id: string, updateCategoryDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found!');
+
+    if (updateCategoryDto.password_hashed) {
+      user.password_hashed = await this.hashPassword(
+        updateCategoryDto.password_hashed,
+        user.salt,
+      );
+    }
+
+    return await this.userRepository.update(id, updateCategoryDto);
+  }
+
+  async remove(id: string) {
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!user) throw new NotFoundException('User not found!');
+
+    return await this.userRepository.delete(id);
   }
 }
