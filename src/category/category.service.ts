@@ -29,7 +29,6 @@ export class CategoryService {
       throw new BadRequestException('This category already exist!');
 
     const newCategory = {
-      id: Date.now(),
       category_name: createCategoryDto.category_name,
       transaction_type: createCategoryDto.transaction_type,
       description: createCategoryDto.description
