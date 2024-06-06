@@ -4,7 +4,7 @@ export class UpdateUserDto {
   @IsOptional()
   currency: string;
   @IsOptional()
-  password_hashed: string;
+  password: string;
   @IsOptional()
   email: string;
   @IsOptional()

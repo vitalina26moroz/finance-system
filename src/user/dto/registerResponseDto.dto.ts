@@ -3,7 +3,7 @@ export class RegisterResponseDto {
   id: string;
   name: string;
   email: string;
-  password_hashed: string;
+  password: string;
   createdAt: Date;
   currency: string;
   current_budget: number;

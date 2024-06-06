@@ -24,10 +24,6 @@ export class UserService {
     return this.userRepository.findOne({ where: { id } });
   }
 
-  private async hashPassword(password: string, salt: string): Promise<string> {
-    return bcrypt.hash(password, salt);
-  }
-
   async create(signupDto: SignupDto): Promise<RegisterResponseDto> {
     const { email, password, name } = signupDto;
     const existUser = await this.userRepository.findOne({
@@ -43,7 +39,7 @@ export class UserService {
     const user = new User();
 
     user.salt = await bcrypt.genSalt();
-    user.password_hashed = await this.hashPassword(password, user.salt);
+    user.password = await bcrypt.hash(password, user.salt);
     user.email = email;
     user.name = name;
     user.createdAt = new Date();
@@ -53,7 +49,7 @@ export class UserService {
       await this.userRepository.save(user);
       return { ...user, token };
     } catch (error) {
-      throw error;
+      throw new Error('Failed to create user in database');
     }
   }
 
@@ -65,21 +61,21 @@ export class UserService {
     });
   }
 
-  async update(id: string, updateCategoryDto: UpdateUserDto) {
+  async update(id: string, updateUserDto: UpdateUserDto) {
     const user = await this.userRepository.findOne({
       where: { id },
     });
 
     if (!user) throw new NotFoundException('User not found!');
 
-    if (updateCategoryDto.password_hashed) {
-      user.password_hashed = await this.hashPassword(
-        updateCategoryDto.password_hashed,
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(
+        updateUserDto.password,
         user.salt,
       );
     }
 
-    return await this.userRepository.update(id, updateCategoryDto);
+    return await this.userRepository.update(id, updateUserDto);
   }
 
   async remove(id: string) {

@@ -6,7 +6,6 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
-import * as bcrypt from 'bcrypt';
 import { Transaction } from 'src/transaction/entities/transaction.entity';
 import { Category } from 'src/category/entities/category.entity';
 
@@ -22,7 +21,7 @@ export class User {
   email: string;
 
   @Column()
-  password_hashed: string;
+  password: string;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -45,9 +44,4 @@ export class User {
     onDelete: 'CASCADE',
   })
   categories: Category[];
-
-  async validatePassword(password: string): Promise<boolean> {
-    const hash = await bcrypt.hash(password, this.salt);
-    return hash === this.password_hashed;
-  }
 }
