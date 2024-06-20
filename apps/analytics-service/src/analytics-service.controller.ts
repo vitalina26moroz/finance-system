@@ -1,12 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Post } from '@nestjs/common';
 import { AnalyticsServiceService } from './analytics-service.service';
+import { GenerateAnalyticsDto } from './dto/generateAnalytics.dto';
 
-@Controller()
+@Controller('generate-analytics')
 export class AnalyticsServiceController {
-  constructor(private readonly analyticsServiceService: AnalyticsServiceService) {}
+  constructor(private readonly analyticsService: AnalyticsServiceService) {}
 
-  @Get()
-  getHello(): string {
-    return this.analyticsServiceService.getHello();
+  @Post()
+  generate(@Body() generateAnalyticsDto: GenerateAnalyticsDto) {
+    return this.analyticsService.generateAnalytics(generateAnalyticsDto);
   }
 }

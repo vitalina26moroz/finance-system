@@ -1,26 +1,21 @@
-import { Report } from '@app/db/entities/report.entity';
-import { Transaction } from '@app/db/entities/transaction.entity';
 import { User } from '@app/db/entities/user.entity';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Between, Repository } from 'typeorm';
-import { S3 } from 'aws-sdk';
+import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Category } from '@app/db/entities/category.entity';
+import { S3 } from 'aws-sdk';
+import { Report } from '@app/db/entities/report.entity';
+import { GenerateReportDto } from './dto/generateReport.dto';
 
 @Injectable()
-export class ReportServiceService {
+export class ReportService {
   constructor(
     private s3: S3,
     private readonly configService: ConfigService,
-    @InjectRepository(Report)
-    private readonly reportRepository: Repository<Report>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    @InjectRepository(Transaction)
-    private readonly transactionRepository: Repository<Transaction>,
-    @InjectRepository(Category)
-    private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(Report)
+    private readonly reportRepository: Repository<Report>,
   ) {}
 
   async generateReportLink(
@@ -28,44 +23,39 @@ export class ReportServiceService {
     month: number,
     year: number,
   ): Promise<string> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: {
+        categories: true,
+        transactions: true,
+      },
+    });
     if (!user) {
       throw new Error('User not found');
     }
+    console.log(user);
 
     const startDate = new Date(year, month, 1);
     const endDate = new Date(year, month + 1, 0);
 
-    const categories = await this.categoryRepository.find({
-      where: {
-        user: { id },
-      },
-      relations: {
-        transactions: true,
-      },
+    const categoryTransactions = user.categories.map((category) => {
+      const transactions = user.transactions.filter(
+        (transaction) =>
+          transaction.category.category_name === category.category_name &&
+          transaction.createdAt < endDate &&
+          transaction.createdAt >= startDate,
+      );
+
+      return {
+        category: category.category_name,
+        transactions: transactions.map((transaction) => ({
+          id: transaction.id,
+          amount: transaction.amount,
+          date: transaction.createdAt,
+          type: transaction.type,
+        })),
+      };
     });
-
-    const categoryTransactions = await Promise.all(
-      categories.map(async (category) => {
-        const transactions = await this.transactionRepository.find({
-          where: {
-            user: { id },
-            category: category,
-            createdAt: Between(startDate, endDate),
-          },
-        });
-
-        return {
-          category: category.category_name,
-          transactions: transactions.map((transaction) => ({
-            id: transaction.id,
-            amount: transaction.amount,
-            date: transaction.createdAt,
-            type: transaction.type,
-          })),
-        };
-      }),
-    );
 
     const report = {
       user: {
@@ -92,5 +82,30 @@ export class ReportServiceService {
     const uploadResult = await this.s3.upload(s3Params).promise();
 
     return uploadResult.Location;
+  }
+
+  async generateReport(generateReportDto: GenerateReportDto) {
+    const newReport = {
+      link: '',
+      year: generateReportDto.year,
+      month: generateReportDto.month,
+      status: 'inProgress',
+      user: {
+        id: generateReportDto.id,
+      },
+    };
+
+    const report = await this.reportRepository.save(newReport);
+
+    const link = await this.generateReportLink(
+      generateReportDto.id,
+      generateReportDto.month,
+      generateReportDto.year,
+    );
+
+    return await this.reportRepository.update(report.id, {
+      status: 'done',
+      link: link,
+    });
   }
 }

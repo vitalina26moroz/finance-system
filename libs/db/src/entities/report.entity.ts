@@ -22,6 +22,9 @@ export class Report {
   year: number;
 
   @Column()
+  status: string;
+
+  @Column()
   month: number;
 
   @CreateDateColumn()

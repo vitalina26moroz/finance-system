@@ -17,7 +17,7 @@ export class Transaction {
   @Column()
   title: string;
 
-  @Column({ nullable: true })
+  @Column()
   type: string;
 
   @ManyToOne(() => User, (user) => user.transactions)

@@ -19,10 +19,13 @@ export class Analytics {
   user: User;
 
   @Column()
-  year: string;
+  year: number;
 
   @Column()
-  month: string;
+  month: number;
+
+  @Column()
+  status: string;
 
   @CreateDateColumn()
   createdAt: Date;

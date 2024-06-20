@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ReportServiceController } from './report-service.controller';
-import { ReportServiceService } from './report-service.service';
+import { ReportService } from './report-service.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '@app/db/entities/user.entity';
@@ -28,6 +28,6 @@ import { Report } from '@app/db/entities/report.entity';
     }),
   ],
   controllers: [ReportServiceController],
-  providers: [ReportServiceService],
+  providers: [ReportService],
 })
 export class ReportServiceModule {}

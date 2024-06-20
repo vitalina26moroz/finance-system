@@ -1,12 +1,13 @@
-import { Controller, Get } from '@nestjs/common';
-import { ReportServiceService } from './report-service.service';
+import { Controller, Post, Body } from '@nestjs/common';
+import { ReportService } from './report-service.service';
+import { GenerateReportDto } from './dto/generateReport.dto';
 
-@Controller()
+@Controller('generate-report')
 export class ReportServiceController {
-  constructor(private readonly reportServiceService: ReportServiceService) {}
+  constructor(private readonly reportService: ReportService) {}
 
-  @Get()
-  getHello(): string {
-    return this.reportServiceService.getHello();
+  @Post()
+  generate(@Body() generateReportDto: GenerateReportDto) {
+    return this.reportService.generateReport(generateReportDto);
   }
 }
