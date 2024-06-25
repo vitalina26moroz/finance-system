@@ -18,13 +18,13 @@ import { Category } from '../../../../libs/db/src/entities/category.entity';
 import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 import { AuthorGuard } from '../guards/author-guad';
 
+@UsePipes(new ValidationPipe())
 @Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe())
   create(
     @Body() createCategoryDto: CreateCategoryDto,
     @Req() req,
@@ -33,8 +33,9 @@ export class CategoryController {
   }
 
   @Get()
-  @UseGuards(JwtAuthGuard, AuthorGuard)
+  @UseGuards(JwtAuthGuard)
   findAll(@Req() req): Promise<Category[]> {
+    console.log(req.user);
     return this.categoryService.findAll(req.user.id);
   }
 
@@ -54,7 +55,7 @@ export class CategoryController {
   }
 
   @Delete(':type/:id')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   remove(@Param('id') id: string) {
     return this.categoryService.remove(+id);
   }

@@ -5,6 +5,6 @@ import { AllExceptionsFilter } from './filters/all-exception-filter';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalFilters(new AllExceptionsFilter());
-  await app.listen(5000);
+  await app.listen(3000);
 }
 bootstrap();

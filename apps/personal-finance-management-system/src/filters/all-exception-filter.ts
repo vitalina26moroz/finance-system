@@ -18,10 +18,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
+    const massege =
+      exception instanceof HttpException
+        ? exception.message
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const res =
+      exception instanceof HttpException
+        ? exception.getResponse()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
+
     response.status(status).json({
       statusCode: status,
       timestamp: new Date().toISOString(),
       path: request.url,
+      massege: massege,
+      res: res,
     });
   }
 }

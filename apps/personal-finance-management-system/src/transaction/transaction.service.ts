@@ -8,22 +8,31 @@ import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Transaction } from '../../../../libs/db/src/entities/transaction.entity';
 import { Repository } from 'typeorm';
+import { Category } from '@app/db/entities/category.entity';
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async create(
     createTransactionDto: CreateTransactionDto,
     id: string,
   ): Promise<Transaction> {
+    const category = await this.categoryRepository.findOne({
+      where: { id: createTransactionDto.category },
+    });
+
+    if (!category) throw new NotFoundException('Category not found');
+
     const newTransaction = {
       title: createTransactionDto.title,
       amount: createTransactionDto.amount,
-      type: createTransactionDto.type,
+      type: category.transaction_type,
       category: { id: +createTransactionDto.category },
       description: createTransactionDto.description
         ? createTransactionDto.description

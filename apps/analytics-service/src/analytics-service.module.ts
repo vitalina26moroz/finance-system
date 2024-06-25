@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AnalyticsServiceController } from './analytics-service.controller';
-import { AnalyticsServiceService } from './analytics-service.service';
+import { AnalyticsService } from './analytics-service.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '@app/db/entities/user.entity';
@@ -26,8 +26,9 @@ import { Report } from '@app/db/entities/report.entity';
         synchronize: false,
       }),
     }),
+    TypeOrmModule.forFeature([User, Analytics]),
   ],
   controllers: [AnalyticsServiceController],
-  providers: [AnalyticsServiceService],
+  providers: [AnalyticsService],
 })
 export class AnalyticsServiceModule {}

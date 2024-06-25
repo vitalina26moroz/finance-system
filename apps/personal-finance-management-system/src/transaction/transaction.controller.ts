@@ -19,12 +19,12 @@ import { Transaction } from '../../../../libs/db/src/entities/transaction.entity
 import { JwtAuthGuard } from '../guards/jwt-auth-guard';
 import { AuthorGuard } from '../guards/author-guad';
 
+@UsePipes(new ValidationPipe())
 @Controller('transactions')
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
   @Post()
-  @UsePipes(new ValidationPipe())
   @UseGuards(JwtAuthGuard)
   create(
     @Body() createTransactionDto: CreateTransactionDto,

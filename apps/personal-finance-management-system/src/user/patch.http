@@ -1,0 +1,7 @@
+PATCH http://localhost:3000/user/5baacdfa-dbc7-4907-b21e-7f84c4483bc6
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViYWFjZGZhLWRiYzctNDkwNy1iMjFlLTdmODRjNDQ4M2JjNiIsImVtYWlsIjoidnNhU0FpdGZmZmFhbGlkZGRuYUBnbWFpbC5jb20iLCJpYXQiOjE3MTkyNDQ5MDAsImV4cCI6MTcyMTgzNjkwMH0.LiWPTVPF2WkawF0wgSjADbU6_gRIUwTAkWHlnAqIyrw
+Content-Type: application/json
+
+{
+    "name": "nitra"
+}

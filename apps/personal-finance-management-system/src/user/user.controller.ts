@@ -31,7 +31,7 @@ export class UserController {
     return this.userService.update(id, updateUserDto);
   }
 
-  @Delete(':type/:id')
+  @Delete(':id')
   @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.userService.remove(id);

@@ -26,15 +26,18 @@ export class UserService {
 
   async create(signupDto: SignupDto): Promise<RegisterResponseDto> {
     const { email, password, name } = signupDto;
+    console.log(signupDto);
     const existUser = await this.userRepository.findOne({
       where: {
         email: email,
       },
     });
-    if (existUser)
+    if (existUser) {
+      console.log(existUser);
       throw new BadRequestException(
         'User with this email already exist! Cannot create User',
       );
+    }
 
     const user = new User();
 

@@ -1,12 +1,15 @@
-import { IsNotEmpty, IsOptional } from 'class-validator';
-import { User } from '@app/db/entities/user.entity';
+import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator';
+
+enum TransactionType {
+  INCOME = 'income',
+  EXPENSE = 'expense',
+}
 export class CreateCategoryDto {
   @IsNotEmpty()
   category_name: string;
-  @IsNotEmpty()
-  user: User;
   @IsOptional()
   description: string;
   @IsNotEmpty()
-  transaction_type: string;
+  @IsEnum(TransactionType)
+  transaction_type: TransactionType;
 }

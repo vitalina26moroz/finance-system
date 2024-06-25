@@ -1,8 +1,12 @@
 import { User } from '@app/db/entities/user.entity';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  ServiceUnavailableException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { S3 } from 'aws-sdk';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import { Repository } from 'typeorm';
 import { GenerateAnalyticsDto } from './dto/generateAnalytics.dto';
 import { Analytics } from '@app/db/entities/analytics.entity';
@@ -11,9 +15,8 @@ import { HighestDay } from './types/highestDay';
 import { MainSource } from './types/mainSource';
 
 @Injectable()
-export class AnalyticsServiceService {
+export class AnalyticsService {
   constructor(
-    private s3: S3,
     private readonly configService: ConfigService,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -38,19 +41,19 @@ export class AnalyticsServiceService {
   ): Promise<string> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: {
-        categories: true,
-        transactions: true,
-      },
+      relations: ['categories', 'transactions', 'transactions.category'],
     });
     if (!user) {
       throw new Error('User not found');
     }
     console.log(user);
+    const ClientS3 = new S3Client({
+      region: this.configService.getOrThrow('AWS_REGION'),
+    });
 
     const currentDate = new Date();
-    const startDate = new Date(year, month, 1);
-    let endDate = new Date(year, month + 1, 0);
+    const startDate = new Date(year, month - 1, 0);
+    let endDate = new Date(year, month + 1, 1);
 
     if (startDate > currentDate) {
       throw new BadRequestException('Future month data is not available');
@@ -66,8 +69,8 @@ export class AnalyticsServiceService {
 
     const daysPeriod = this.calculateDaysBetweenDates(startDate, endDate);
 
-    let incomeCategoriesAmounts: CategoryAmount[];
-    let expenseCategoriesAmounts: CategoryAmount[];
+    const incomeCategoriesAmounts: CategoryAmount[] = [];
+    const expenseCategoriesAmounts: CategoryAmount[] = [];
 
     let total_expense: number = 0;
     let total_income: number = 0;
@@ -84,20 +87,21 @@ export class AnalyticsServiceService {
     let main_expense_source: MainSource = { category_name: '', amount: 0 };
 
     const incomeCategories = user.categories.filter(
-      (category) => (category.transaction_type = 'income'),
+      (category) => category.transaction_type === 'income',
     );
 
     const expenseCategories = user.categories.filter(
-      (category) => (category.transaction_type = 'expense'),
+      (category) => category.transaction_type === 'expense',
     );
 
     const incomeCategoriesTransactions = incomeCategories.map((category) => {
-      const transactions = user.transactions.filter(
-        (transaction) =>
+      const transactions = user.transactions.filter((transaction) => {
+        return (
           transaction.category.category_name === category.category_name &&
           transaction.createdAt < endDate &&
-          transaction.createdAt >= startDate,
-      );
+          transaction.createdAt > startDate
+        );
+      });
 
       incomeCategoriesAmounts.push({
         category_name: category.category_name,
@@ -198,18 +202,29 @@ export class AnalyticsServiceService {
       expense: expenseCategoriesTransactions,
     };
 
-    const reportJson = JSON.stringify(analytics, null, 2);
+    const analyticsJson = JSON.stringify(analytics);
+    console.log(analyticsJson);
+    const key = `analytics/${user.id}-analytics-${year}-${month}.json`;
 
     const s3Params = {
       Bucket: this.configService.getOrThrow('AWS_S3_BUCKET_NAME'),
-      Key: `reports/${user.id}-report-${year}-${month}.json`,
-      Body: reportJson,
+      Key: key,
+      Body: analyticsJson,
       ContentType: 'application/json',
     };
 
-    const uploadResult = await this.s3.upload(s3Params).promise();
+    const putObjectCommand = new PutObjectCommand(s3Params);
 
-    return uploadResult.Location;
+    try {
+      await ClientS3.send(putObjectCommand);
+    } catch (e) {
+      throw new ServiceUnavailableException('Could not upload to s3');
+    }
+
+    const fileUrl = `https://${this.configService.getOrThrow('AWS_S3_BUCKET_NAME')}.s3.${this.configService.getOrThrow('AWS_REGION')}.amazonaws.com/${key}`;
+    console.log(`File URL: ${fileUrl}`);
+
+    return fileUrl;
   }
 
   async generateAnalytics(generateAnalyticsDto: GenerateAnalyticsDto) {
@@ -222,8 +237,24 @@ export class AnalyticsServiceService {
         id: generateAnalyticsDto.id,
       },
     };
-
-    const analytics = await this.analyticsRepository.save(newAnalytics);
+    const existInDB = await this.analyticsRepository.findOne({
+      where: {
+        year: generateAnalyticsDto.year,
+        user: { id: generateAnalyticsDto.id },
+        month: generateAnalyticsDto.month,
+      },
+    });
+    let analyticsId;
+    let analytics;
+    if (existInDB) {
+      analytics = await this.analyticsRepository.update(existInDB.id, {
+        status: 'inProgress',
+      });
+      analyticsId = existInDB.id;
+    } else {
+      analytics = await this.analyticsRepository.save(newAnalytics);
+      analyticsId = analytics.id;
+    }
 
     const link = await this.generateAnalyticsLink(
       generateAnalyticsDto.id,
@@ -231,7 +262,7 @@ export class AnalyticsServiceService {
       generateAnalyticsDto.year,
     );
 
-    return await this.analyticsRepository.update(analytics.id, {
+    return await this.analyticsRepository.update(analyticsId, {
       status: 'done',
       link: link,
     });
