@@ -2,10 +2,13 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import * as bcrypt from 'bcrypt';
+import { Transaction } from 'src/transaction/entities/transaction.entity';
+import { Category } from 'src/category/entities/category.entity';
 
 @Entity({ name: 'user' })
 export class User {
@@ -32,6 +35,16 @@ export class User {
 
   @Column()
   salt: string;
+
+  @OneToMany(() => Transaction, (transaction) => transaction.user, {
+    onDelete: 'CASCADE',
+  })
+  transactions: Transaction[];
+
+  @OneToMany(() => Category, (category) => category.user, {
+    onDelete: 'CASCADE',
+  })
+  categories: Category[];
 
   async validatePassword(password: string): Promise<boolean> {
     const hash = await bcrypt.hash(password, this.salt);
