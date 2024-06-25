@@ -18,7 +18,7 @@ export class Category {
   category_name: string;
 
   @Column()
-  desciption: string;
+  description: string;
 
   @Column()
   transaction_type: string;

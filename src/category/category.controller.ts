@@ -6,31 +6,46 @@ import {
   Patch,
   Param,
   Delete,
+  Req,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { CategoryService } from './category.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { JwtAuthGuard } from 'src/guards/jwt-auth-guard';
+import { Category } from './entities/category.entity';
+import { AuthorGuard } from 'src/guards/author-guad';
 
-@Controller('category')
+@Controller('categories')
 export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  create(@Body() createCategoryDto: CreateCategoryDto) {
-    return this.categoryService.create(createCategoryDto);
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe())
+  create(
+    @Body() createCategoryDto: CreateCategoryDto,
+    @Req() req,
+  ): Promise<Category> {
+    return this.categoryService.create(createCategoryDto, req.user.id);
   }
 
   @Get()
-  findAll() {
-    return this.categoryService.findAll();
+  @UseGuards(JwtAuthGuard, AuthorGuard)
+  findAll(@Req() req): Promise<Category[]> {
+    return this.categoryService.findAll(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
+  @Get(':type/:id')
+  @UseGuards(JwtAuthGuard, AuthorGuard)
+  findOne(@Param('id') id: string): Promise<Category> {
     return this.categoryService.findOne(+id);
   }
 
-  @Patch(':id')
+  @Patch(':type/:id')
+  @UseGuards(JwtAuthGuard, AuthorGuard)
   update(
     @Param('id') id: string,
     @Body() updateCategoryDto: UpdateCategoryDto,
@@ -38,7 +53,8 @@ export class CategoryController {
     return this.categoryService.update(+id, updateCategoryDto);
   }
 
-  @Delete(':id')
+  @Delete(':type/:id')
+  @UseGuards(JwtAuthGuard)
   remove(@Param('id') id: string) {
     return this.categoryService.remove(+id);
   }
