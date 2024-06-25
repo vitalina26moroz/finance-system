@@ -1,0 +1,7 @@
+PATCH http://localhost:3000/categories/category/3
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjViYWFjZGZhLWRiYzctNDkwNy1iMjFlLTdmODRjNDQ4M2JjNiIsImVtYWlsIjoidnNhU0FpdGZmZmFhbGlkZGRuYUBnbWFpbC5jb20iLCJpYXQiOjE3MTkyNDQ5MDAsImV4cCI6MTcyMTgzNjkwMH0.LiWPTVPF2WkawF0wgSjADbU6_gRIUwTAkWHlnAqIyrw
+Content-Type: application/json
+
+{
+    "description": "Full salary once a month usually ~ 1600$"
+}

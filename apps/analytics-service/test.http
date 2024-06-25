@@ -1,0 +1,8 @@
+POST http://localhost:4000/generate-analytics
+Content-Type: application/json
+
+{
+    "id": "5baacdfa-dbc7-4907-b21e-7f84c4483bc6",
+    "month": 6,
+    "year": 2024
+}

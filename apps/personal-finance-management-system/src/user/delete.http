@@ -1,0 +1,2 @@
+DELETE http://localhost:3000/user/eda00379-47fa-4e6e-b744-43039afcfc17
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZzYVNBaXRmZmZhYWxpZGRkbmFAZ21haWwuY29tIiwiaWF0IjoxNzE5MjQwNTgyLCJleHAiOjE3MjE4MzI1ODJ9.UMjxwaNgX2GuzO3YAXIkCM-5rjdWRnyTHPHZOJnG370

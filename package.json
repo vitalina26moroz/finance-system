@@ -6,25 +6,33 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "build webpack": "webpack --config webpack.config.js",
     "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
     "start": "nest start",
+    "start:report-service": "nest start report-service --watch",
+    "start:analytics-service": "nest start analytics-service --watch",
+    "start:all": "concurrently \"npm run start --watch\" \"npm run start:report-service\" \"npm run start:analytics-service\"",
+    "build:report-service": "nest build report-service",
+    "build:analytics-service": "nest build analytics-service",
+    "build:all": "concurrently \"npm run build\" \"npm run build:report-service\" \"npm run build:analytics-service\"",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/apps/personal-finance-management-system/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:e2e": "jest --config ./apps/personal-finance-management-system/test/jest-e2e.json",
     "typeorm": "ts-node ./node_modules/typeorm/cli",
     "typeorm:run-migrations": "npm run typeorm migration:run -- -d ./orm.config.ts",
-    "typeorm:generate-migration": "npm run typeorm -- -d ./orm.config.ts migration:generate ./migrations/$npm_config_name",
-    "typeorm:create-migration": "npm run typeorm -- migration:create ./migrations/$npm_config_name",
+    "typeorm:generate-migration": "npm run typeorm -- -d ./orm.config.ts migration:generate ./libs/db/src/migrations/migrations/$npm_config_name",
+    "typeorm:create-migration": "npm run typeorm -- migration:create ./libs/db/src/migrations/migrations/$npm_config_name",
     "typeorm:revert-migration": "npm run typeorm -- -d ./orm.config.ts migration:revert"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.600.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",
@@ -33,6 +41,9 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.0.0",
     "@nestjs/typeorm": "^10.0.2",
+    "@vendia/serverless-express": "^4.12.6",
+    "aws-lambda": "^1.0.7",
+    "aws-sdk": "^2.1645.0",
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "class-transformer": "^0.5.1",
@@ -56,6 +67,8 @@
     "@types/supertest": "^6.0.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",
     "@typescript-eslint/parser": "^6.0.0",
+    "@vercel/ncc": "^0.38.1",
+    "concurrently": "^8.2.2",
     "eslint": "^8.42.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
@@ -75,7 +88,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
@@ -83,7 +96,14 @@
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/",
+      "<rootDir>/libs/"
+    ],
+    "moduleNameMapper": {
+      "^@app/db(|/.*)$": "<rootDir>/libs/db/src/$1"
+    }
   }
 }
