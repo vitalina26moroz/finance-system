@@ -13,7 +13,7 @@
     "personal-finance-management-system": {
       "type": "application",
       "root": "apps/personal-finance-management-system",
-      "entryFile": "main",
+      "entryFile": "interface-lambda",
       "sourceRoot": "apps/personal-finance-management-system/src",
       "compilerOptions": {
         "tsConfigPath": "apps/personal-finance-management-system/tsconfig.app.json"

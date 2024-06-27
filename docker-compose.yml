@@ -1,0 +1,24 @@
+version: "1"
+
+services:
+  analytics-service:
+    build:
+      context: "/home/vitalina/Personal Finance Management System/personal-finance-management-system/apps/analytics-service"
+      dockerfile: Dockerfile
+    container_name: "analytics-service"
+    ports:
+      - "4000:8080"
+  personal-finance-management-system:
+    build:
+      context: "/home/vitalina/Personal Finance Management System/personal-finance-management-system/apps/personal-finance-management-system"
+      dockerfile: Dockerfile
+    container_name: "personal-finance-management-system"
+    ports:
+      - "5000:8080"
+  report-service:
+    build:
+      context: "/home/vitalina/Personal Finance Management System/personal-finance-management-system/apps/report-service"
+      dockerfile: Dockerfile
+    container_name: "report-service"
+    ports:
+      - "8000:8080"

@@ -56,6 +56,7 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+RUN apk add --no-cache make gcc g++ python3 cmake
 ```
 
 ## Support
